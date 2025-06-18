@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crystal Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        crystal: {
+                            blue: '#2563eb',
+                            purple: '#7c3aed',
+                            pink: '#db2777',
+                            yellow: '#eab308',
+                            dark: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        adventure: ['"Baloo 2"', 'cursive'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .text-shadow-lg {
+                text-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+            }
+            .glass {
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            .glass-dark {
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                background: rgba(30, 41, 59, 0.7);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .animate-float {
+                animation: float 3s ease-in-out infinite;
+            }
+            .animate-shimmer {
+                background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+                background-size: 200% 100%;
+                animation: shimmer 2s infinite;
+            }
+            .animate-pulse-slow {
+                animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-crystal-blue/90 to-crystal-purple/90 min-h-screen overflow-hidden font-adventure text-white">
+    <div id="particles-bg" class="fixed inset-0 z-0"></div>
+    
+    <!-- Start Screen -->
+    <div id="start-screen" class="fixed inset-0 z-30 flex flex-col items-center justify-center p-4 transition-opacity duration-500">
+        <div class="glass-dark rounded-3xl p-8 md:p-12 w-full max-w-2xl shadow-2xl">
+            <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-extrabold text-center mb-4 bg-clip-text text-transparent bg-gradient-to-r from-crystal-blue via-crystal-pink to-crystal-yellow text-shadow-lg">
+                Crystal Adventure
+            </h1>
+            
+            <div class="flex justify-center mb-8">
+                <div class="relative w-40 h-40">
+                    <div class="absolute inset-0 rounded-full bg-gradient-to-r from-crystal-blue to-crystal-purple animate-pulse-slow"></div>
+                    <div class="absolute inset-2 rounded-full bg-gradient-to-r from-crystal-pink to-crystal-yellow animate-pulse-slow"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fa fa-diamond text-7xl text-white animate-float"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-4 mb-8">
+                <p class="text-lg text-center">收集水晶，避开黑暗能量，成为水晶大师！</p>
+                <div class="flex justify-center">
+                    <button id="start-btn" class="glass px-8 py-4 rounded-full text-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50">
+                        <i class="fa fa-play mr-2"></i>开始游戏
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass rounded-xl p-4">
+                <h3 class="text-xl font-bold mb-2 text-center">游戏说明</h3>
+                <ul class="space-y-2 text-sm md:text-base">
+                    <li class="flex items-start">
+                        <i class="fa fa-diamond text-crystal-yellow mt-1 mr-2"></i>
+                        <span>收集水晶获得分数</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-star text-crystal-pink mt-1 mr-2"></i>
+                        <span>收集星光恢复生命值</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-bolt text-crystal-dark mt-1 mr-2"></i>
+                        <span>避开黑暗能量以免失去生命值</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-clock-o text-crystal-blue mt-1 mr-2"></i>
+                        <span>游戏难度随时间增加</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fa fa-pause text-crystal-purple mt-1 mr-2"></i>
+                        <span>按P键或点击暂停按钮暂停游戏</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game UI -->
+    <div id="game-ui" class="fixed inset-0 z-20 opacity-0 pointer-events-none transition-opacity duration-500">
+        <!-- Game Canvas -->
+        <canvas id="game-canvas" class="fixed inset-0 z-10"></canvas>
+        
+        <!-- Game Controls -->
+        <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-30 glass-dark rounded-full px-6 py-3 flex items-center space-x-4 shadow-lg">
+            <div class="flex items-center">
+                <i class="fa fa-trophy text-crystal-yellow mr-2"></i>
+                <span id="score-display" class="font-bold">0</span>
+            </div>
+            
+            <div class="flex items-center ml-4">
+                <i class="fa fa-heart text-crystal-pink mr-2"></i>
+                <div class="w-32 bg-gray-700 rounded-full h-2.5">
+                    <div id="health-bar" class="bg-gradient-to-r from-crystal-pink to-crystal-yellow h-2.5 rounded-full transition-all duration-300" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <button id="pause-btn" class="ml-4 focus:outline-none">
+                <i class="fa fa-pause-circle-o text-2xl hover:text-crystal-yellow transition-colors"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Controls -->
+        <div id="mobile-controls" class="fixed bottom-20 left-0 right-0 z-20 grid grid-cols-3 gap-4 p-4 md:hidden">
+            <button id="left-btn" class="glass rounded-full h-20 flex items-center justify-center">
+                <i class="fa fa-arrow-left text-3xl"></i>
+            </button>
+            <div class="flex space-x-4">
+                <button id="up-btn" class="glass rounded-full h-20 flex-1 flex items-center justify-center">
+                    <i class="fa fa-arrow-up text-3xl"></i>
+                </button>
+                <button id="down-btn" class="glass rounded-full h-20 flex-1 flex items-center justify-center">
+                    <i class="fa fa-arrow-down text-3xl"></i>
+                </button>
+            </div>
+            <button id="right-btn" class="glass rounded-full h-20 flex items-center justify-center">
+                <i class="fa fa-arrow-right text-3xl"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Pause Menu -->
+    <div id="pause-menu" class="fixed inset-0 z-40 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-dark rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h2 class="text-3xl font-bold text-center mb-6">游戏暂停</h2>
+            
+            <div class="space-y-4">
+                <button id="resume-btn" class="w-full glass px-6 py-3 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none">
+                    <i class="fa fa-play mr-2"></i>继续游戏
+                </button>
+                
+                <button id="restart-btn" class="w-full glass px-6 py-3 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none">
+                    <i class="fa fa-refresh mr-2"></i>重新开始
+                </button>
+                
+                <button id="exit-btn" class="w-full glass px-6 py-3 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none">
+                    <i class="fa fa-sign-out mr-2"></i>退出游戏
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="fixed inset-0 z-40 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-dark rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h2 class="text-3xl font-bold text-center mb-2">游戏结束</h2>
+            <p class="text-xl text-center mb-6">再接再厉!</p>
+            
+            <div class="text-center mb-6">
+                <div class="text-2xl font-bold mb-2">你的得分</div>
+                <div id="final-score" class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-crystal-blue via-crystal-pink to-crystal-yellow">0</div>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="play-again-btn" class="w-full glass px-6 py-3 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none">
+                    <i class="fa fa-refresh mr-2"></i>再玩一次
+                </button>
+                
+                <button id="exit-to-menu-btn" class="w-full glass px-6 py-3 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none">
+                    <i class="fa fa-home mr-2"></i>返回主菜单
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Win Screen -->
+    <div id="win-screen" class="fixed inset-0 z-40 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-dark rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h2 class="text-3xl font-bold text-center mb-2">恭喜你!</h2>
+            <p class="text-xl text-center mb-6">你赢了!</p>
+            
+            <div class="text-center mb-6">
+                <div class="text-2xl font-bold mb-2">你的得分</div>
+                <div id="win-score" class="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-crystal-blue via-crystal-pink to-crystal-yellow">0</div>
+            </div>
+            
+            <div class="space-y-4">
+                <button id="play-again-win-btn" class="w-full glass px-6 py-3 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none">
+                    <i class="fa fa-refresh mr-2"></i>再玩一次
+                </button>
+                
+                <button id="exit-to-menu-win-btn" class="w-full glass px-6 py-3 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:bg-white/30 focus:outline-none">
+                    <i class="fa fa-home mr-2"></i>返回主菜单
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        let canvas, ctx;
+        let player = { x: 0, y: 0, radius: 25, speed: 5, health: 100 };
+        let crystals = [];
+        let darkEnergies = [];
+        let stars = [];
+        let score = 0;
+        let gameRunning = false;
+        let gamePaused = false;
+        let animationId;
+        let lastTimestamp = 0;
+        let spawnTimer = 0;
+        let difficulty = 1;
+        let keys = {
+            ArrowUp: false,
+            ArrowDown: false,
+            ArrowLeft: false,
+            ArrowRight: false
+        };
+        
+        // Sound variables
+        let backgroundMusic, soundStart, soundCoin, soundBlackstone, soundGameOver, soundWinGame;
+
+        // Initialize game
+        function initGame() {
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Initialize sounds
+            initSounds();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Create initial game objects
+            resetGame();
+        }
+        
+        // Initialize sounds
+        function initSounds() {
+            backgroundMusic = new Audio('sounds/background.mp3');
+            backgroundMusic.loop = true;
+            backgroundMusic.volume = 0.5;
+            
+            soundStart = new Audio('sounds/gamestart.mp3');
+            soundCoin = new Audio('sounds/coin.mp3');
+            soundBlackstone = new Audio('sounds/blackstone.mp3');
+            soundGameOver = new Audio('sounds/gameover.mp3');
+            soundWinGame = new Audio('sounds/wingame.mp3');
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Keyboard controls
+            window.addEventListener('keydown', (e) => {
+                if (keys.hasOwnProperty(e.key)) {
+                    keys[e.key] = true;
+                }
+                
+                // Pause/unpause with 'p' key
+                if (e.key === 'p' && gameRunning) {
+                    togglePause();
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                if (keys.hasOwnProperty(e.key)) {
+                    keys[e.key] = false;
+                }
+            });
+            
+            // Mobile controls
+            document.getElementById('up-btn').addEventListener('touchstart', () => { keys.ArrowUp = true; });
+            document.getElementById('up-btn').addEventListener('touchend', () => { keys.ArrowUp = false; });
+            document.getElementById('down-btn').addEventListener('touchstart', () => { keys.ArrowDown = true; });
+            document.getElementById('down-btn').addEventListener('touchend', () => { keys.ArrowDown = false; });
+            document.getElementById('left-btn').addEventListener('touchstart', () => { keys.ArrowLeft = true; });
+            document.getElementById('left-btn').addEventListener('touchend', () => { keys.ArrowLeft = false; });
+            document.getElementById('right-btn').addEventListener('touchstart', () => { keys.ArrowRight = true; });
+            document.getElementById('right-btn').addEventListener('touchend', () => { keys.ArrowRight = false; });
+            
+            // Button controls
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('pause-btn').addEventListener('click', togglePause);
+            document.getElementById('resume-btn').addEventListener('click', togglePause);
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+            document.getElementById('exit-btn').addEventListener('click', exitGame);
+            document.getElementById('play-again-btn').addEventListener('click', restartGame);
+            document.getElementById('exit-to-menu-btn').addEventListener('click', exitGame);
+            document.getElementById('play-again-win-btn').addEventListener('click', restartGame);
+            document.getElementById('exit-to-menu-win-btn').addEventListener('click', exitGame);
+        }
+        
+        // Start the game
+        function startGame() {
+            // Play start sound
+            soundStart.currentTime = 0;
+            soundStart.play();
+            
+            // Show game UI
+            document.getElementById('start-screen').classList.add('opacity-0');
+            document.getElementById('start-screen').classList.add('pointer-events-none');
+            document.getElementById('game-ui').classList.remove('opacity-0');
+            document.getElementById('game-ui').classList.remove('pointer-events-none');
+            
+            // Start background music after a short delay
+            setTimeout(() => {
+                backgroundMusic.currentTime = 0;
+                backgroundMusic.play();
+            }, 500);
+            
+            // Start game loop
+            gameRunning = true;
+            gamePaused = false;
+            lastTimestamp = performance.now();
+            gameLoop(lastTimestamp);
+        }
+        
+        // Toggle pause
+        function togglePause() {
+            if (gamePaused) {
+                // Resume game
+                document.getElementById('pause-menu').classList.add('opacity-0');
+                document.getElementById('pause-menu').classList.add('pointer-events-none');
+                gamePaused = false;
+                lastTimestamp = performance.now();
+                gameLoop(lastTimestamp);
+            } else {
+                // Pause game
+                document.getElementById('pause-menu').classList.remove('opacity-0');
+                document.getElementById('pause-menu').classList.remove('pointer-events-none');
+                gamePaused = true;
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
+        // Restart the game
+        function restartGame() {
+            resetGame();
+            
+            // Hide menus
+            document.getElementById('pause-menu').classList.add('opacity-0');
+            document.getElementById('pause-menu').classList.add('pointer-events-none');
+            document.getElementById('game-over-screen').classList.add('opacity-0');
+            document.getElementById('game-over-screen').classList.add('pointer-events-none');
+            document.getElementById('win-screen').classList.add('opacity-0');
+            document.getElementById('win-screen').classList.add('pointer-events-none');
+            
+            // Start game loop
+            gameRunning = true;
+            gamePaused = false;
+            lastTimestamp = performance.now();
+            gameLoop(lastTimestamp);
+            
+            // Play background music
+            backgroundMusic.currentTime = 0;
+            backgroundMusic.play();
+        }
+        
+        // Exit to main menu
+        function exitGame() {
+            // Stop game and background music
+            gameRunning = false;
+            gamePaused = false;
+            cancelAnimationFrame(animationId);
+            backgroundMusic.pause();
+            
+            // Reset game
+            resetGame();
+            
+            // Show start screen
+            document.getElementById('start-screen').classList.remove('opacity-0');
+            document.getElementById('start-screen').classList.remove('pointer-events-none');
+            document.getElementById('game-ui').classList.add('opacity-0');
+            document.getElementById('game-ui').classList.add('pointer-events-none');
+            document.getElementById('pause-menu').classList.add('opacity-0');
+            document.getElementById('pause-menu').classList.add('pointer-events-none');
+            document.getElementById('game-over-screen').classList.add('opacity-0');
+            document.getElementById('game-over-screen').classList.add('pointer-events-none');
+            document.getElementById('win-screen').classList.add('opacity-0');
+            document.getElementById('win-screen').classList.add('pointer-events-none');
+        }
+        
+        // Reset game state
+        function resetGame() {
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.health = 100;
+            score = 0;
+            crystals = [];
+            darkEnergies = [];
+            stars = [];
+            difficulty = 1;
+            spawnTimer = 0;
+            
+            // Update UI
+            document.getElementById('score-display').textContent = score;
+            document.getElementById('health-bar').style.width = '100%';
+        }
+        
+        // Main game loop
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            
+            // Calculate delta time
+            const deltaTime = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+            
+            // Update game state
+            update(deltaTime);
+            
+            // Render game
+            render();
+            
+            // Continue loop
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        // Update game state
+        function update(deltaTime) {
+            // Update player position
+            updatePlayer(deltaTime);
+            
+            // Update spawn timer
+            spawnTimer += deltaTime;
+            
+            // Spawn new objects based on difficulty
+            if (spawnTimer >= 1 / difficulty) {
+                spawnObjects();
+                spawnTimer = 0;
+            }
+            
+            // Update crystals
+            updateObjects(crystals, deltaTime);
+            
+            // Update dark energies
+            updateObjects(darkEnergies, deltaTime);
+            
+            // Update stars
+            updateObjects(stars, deltaTime);
+            
+            // Check collisions
+            checkCollisions();
+            
+            // Increase difficulty over time
+            difficulty += deltaTime * 0.05;
+            
+            // Check win condition
+            if (score >= 1000) {
+                winGame();
+            }
+        }
+        
+        // Update player position
+        function updatePlayer(deltaTime) {
+            // Handle movement
+            if (keys.ArrowUp) {
+                player.y -= player.speed;
+            }
+            if (keys.ArrowDown) {
+                player.y += player.speed;
+            }
+            if (keys.ArrowLeft) {
+                player.x -= player.speed;
+            }
+            if (keys.ArrowRight) {
+                player.x += player.speed;
+            }
+            
+            // Keep player within bounds
+            if (player.x - player.radius < 0) {
+                player.x = player.radius;
+            }
+            if (player.x + player.radius > canvas.width) {
+                player.x = canvas.width - player.radius;
+            }
+            if (player.y - player.radius < 0) {
+                player.y = player.radius;
+            }
+            if (player.y + player.radius > canvas.height) {
+                player.y = canvas.height - player.radius;
+            }
+        }
+        
+        // Update objects
+        function updateObjects(objects, deltaTime) {
+            for (let i = objects.length - 1; i >= 0; i--) {
+                const obj = objects[i];
+                
+                // Move object
+                obj.y += obj.speed * deltaTime * 60;
+                
+                // Remove if out of bounds
+                if (obj.y > canvas.height + obj.radius) {
+                    objects.splice(i, 1);
+                }
+            }
+        }
+        
+        // Spawn objects
+        function spawnObjects() {
+            // Random spawn position
+            const x = Math.random() * (canvas.width - 50) + 25;
+            
+            // Spawn crystal
+            if (Math.random() < 0.6) {
+                const colors = ['#2563eb', '#7c3aed', '#db2777', '#eab308'];
+                crystals.push({
+                    x: x,
+                    y: -50,
+                    radius: 15 + Math.random() * 10,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: 3 + Math.random() * 2 * difficulty
+                });
+            }
+            // Spawn dark energy
+            else if (Math.random() < 0.85) {
+                darkEnergies.push({
+                    x: x,
+                    y: -50,
+                    radius: 15 + Math.random() * 10,
+                    color: '#1e293b',
+                    speed: 4 + Math.random() * 3 * difficulty
+                });
+            }
+            // Spawn star
+            else {
+                stars.push({
+                    x: x,
+                    y: -50,
+                    radius: 12 + Math.random() * 8,
+                    color: '#f97316',
+                    speed: 2 + Math.random() * 1.5 * difficulty
+                });
+            }
+        }
+        
+        // Check collisions
+        function checkCollisions() {
+            // Check crystal collisions
+            for (let i = crystals.length - 1; i >= 0; i--) {
+                const crystal = crystals[i];
+                const dx = player.x - crystal.x;
+                const dy = player.y - crystal.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < player.radius + crystal.radius) {
+                    // Play coin sound
+                    soundCoin.currentTime = 0;
+                    soundCoin.play();
+                    
+                    // Increase score
+                    score += 10;
+                    document.getElementById('score-display').textContent = score;
+                    
+                    // Remove crystal
+                    crystals.splice(i, 1);
+                }
+            }
+            
+            // Check dark energy collisions
+            for (let i = darkEnergies.length - 1; i >= 0; i--) {
+                const darkEnergy = darkEnergies[i];
+                const dx = player.x - darkEnergy.x;
+                const dy = player.y - darkEnergy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < player.radius + darkEnergy.radius) {
+                    // Play blackstone sound
+                    soundBlackstone.currentTime = 0;
+                    soundBlackstone.play();
+                    
+                    // Decrease health
+                    player.health -= 15;
+                    document.getElementById('health-bar').style.width = `${player.health}%`;
+                    
+                    // Check game over
+                    if (player.health <= 0) {
+                        gameOver();
+                    }
+                    
+                    // Remove dark energy
+                    darkEnergies.splice(i, 1);
+                }
+            }
+            
+            // Check star collisions
+            for (let i = stars.length - 1; i >= 0; i--) {
+                const star = stars[i];
+                const dx = player.x - star.x;
+                const dy = player.y - star.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < player.radius + star.radius) {
+                    // Play coin sound (reusing for star)
+                    soundCoin.currentTime = 0;
+                    soundCoin.play();
+                    
+                    // Increase health
+                    player.health = Math.min(player.health + 25, 100);
+                    document.getElementById('health-bar').style.width = `${player.health}%`;
+                    
+                    // Remove star
+                    stars.splice(i, 1);
+                }
+            }
+        }
+        
+        // Game over
+        function gameOver() {
+            // Stop game
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            // Play game over sound
+            soundGameOver.currentTime = 0;
+            soundGameOver.play();
+            
+            // Stop background music
+            backgroundMusic.pause();
+            
+            // Show game over screen
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('game-over-screen').classList.remove('opacity-0');
+            document.getElementById('game-over-screen').classList.remove('pointer-events-none');
+        }
+        
+        // Win game
+        function winGame() {
+            // Stop game
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            // Play win sound
+            soundWinGame.currentTime = 0;
+            soundWinGame.play();
+            
+            // Stop background music
+            backgroundMusic.pause();
+            
+            // Show win screen
+            document.getElementById('win-score').textContent = score;
+            document.getElementById('win-screen').classList.remove('opacity-0');
+            document.getElementById('win-screen').classList.remove('pointer-events-none');
+        }
+        
+        // Render game
+        function render() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background gradient
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            bgGradient.addColorStop(0, '#2563eb20');
+            bgGradient.addColorStop(1, '#7c3aed20');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw player
+            const playerGradient = ctx.createRadialGradient(
+                player.x, player.y, 0,
+                player.x, player.y, player.radius
+            );
+            playerGradient.addColorStop(0, '#ffffff');
+            playerGradient.addColorStop(1, '#2563eb');
+            
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fillStyle = playerGradient;
+            ctx.fill();
+            
+            // Draw crystals
+            crystals.forEach(crystal => {
+                const gradient = ctx.createRadialGradient(
+                    crystal.x, crystal.y, 0,
+                    crystal.x, crystal.y, crystal.radius
+                );
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(1, crystal.color);
+                
+                ctx.beginPath();
+                ctx.arc(crystal.x, crystal.y, crystal.radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Add shimmer effect
+                ctx.beginPath();
+                ctx.arc(crystal.x, crystal.y, crystal.radius * 0.8, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fill();
+            });
+            
+            // Draw dark energies
+            darkEnergies.forEach(darkEnergy => {
+                const gradient = ctx.createRadialGradient(
+                    darkEnergy.x, darkEnergy.y, 0,
+                    darkEnergy.x, darkEnergy.y, darkEnergy.radius
+                );
+                gradient.addColorStop(0, '#475569');
+                gradient.addColorStop(1, darkEnergy.color);
+                
+                ctx.beginPath();
+                ctx.arc(darkEnergy.x, darkEnergy.y, darkEnergy.radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            });
+            
+            // Draw stars
+            stars.forEach(star => {
+                // Draw star shape
+                ctx.save();
+                ctx.translate(star.x, star.y);
+                ctx.rotate(Date.now() / 1000);
+                
+                ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                    const x = Math.cos(angle) * star.radius;
+                    const y = Math.sin(angle) * star.radius;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    
+                    const innerAngle = ((i * 2 + 1) * Math.PI / 5) - Math.PI / 2;
+                    const innerX = Math.cos(innerAngle) * star.radius * 0.4;
+                    const innerY = Math.sin(innerAngle) * star.radius * 0.4;
+                    ctx.lineTo(innerX, innerY);
+                }
+                ctx.closePath();
+                
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, star.radius);
+                gradient.addColorStop(0, '#ffffff');
+                gradient.addColorStop(1, star.color);
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.restore();
+            });
+        }
+        
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Reposition player if game is running
+            if (gameRunning) {
+                player.x = Math.min(player.x, canvas.width - player.radius);
+                player.y = Math.min(player.y, canvas.height - player.radius);
+            }
+        }
+        
+        // Create particle background
+        function createParticleBackground() {
+            const particlesContainer = document.getElementById('particles-bg');
+            const particleCount = 100;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                
+                // Random properties
+                const size = Math.random() * 5 + 1;
+                const color = `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.3)`;
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const duration = Math.random() * 30 + 20;
+                const delay = Math.random() * 10;
+                
+                // Apply styles
+                particle.style.position = 'absolute';
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.background = color;
+                particle.style.borderRadius = '50%';
+                particle.style.left = `${x}%`;
+                particle.style.top = `${y}%`;
+                particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Initialize game when window loads
+        window.addEventListener('load', () => {
+            initGame();
+            createParticleBackground();
+        });
+    </script>
+</body>
+</html>
